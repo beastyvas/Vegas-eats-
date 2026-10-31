@@ -1,15 +1,17 @@
 import Link from "next/link";
 import { requireAdmin } from "@/lib/auth";
+import { GeocodeButton } from "./geocode-button";
 
 export default async function AdminHome() {
   const { supabase } = await requireAdmin();
   const count = async (q: PromiseLike<{ count: number | null }>) => (await q).count ?? 0;
-  const [newCands, flaggedCands, published, drafts, queuedJobs] = await Promise.all([
+  const [newCands, flaggedCands, published, drafts, queuedJobs, ungeocoded] = await Promise.all([
     count(supabase.from("candidates").select("*", { count: "exact", head: true }).eq("status", "new")),
     count(supabase.from("candidates").select("*", { count: "exact", head: true }).eq("status", "new").not("seed_note", "is", null)),
     count(supabase.from("listings").select("*", { count: "exact", head: true }).eq("status", "published")),
     count(supabase.from("listings").select("*", { count: "exact", head: true }).eq("status", "draft")),
     count(supabase.from("agent_jobs").select("*", { count: "exact", head: true }).eq("status", "queued")),
+    count(supabase.from("listings").select("*", { count: "exact", head: true }).eq("type", "restaurant").not("street_address", "is", null).is("lat", null)),
   ]);
   const stats = [
     { label: "Candidates to review", value: newCands, href: "/admin/candidates" },
@@ -29,6 +31,7 @@ export default async function AdminHome() {
           </li>
         ))}
       </ul>
+      <div className="mt-6"><GeocodeButton missing={ungeocoded} /></div>
     </div>
   );
 }

@@ -5,6 +5,7 @@ import { requireAdmin } from "@/lib/auth";
 import { readListingForm, socialRows } from "@/lib/listings/form";
 import { slugify, uniqueSlug } from "@/lib/slug";
 import type { Json } from "@/lib/database.types";
+import { geocode } from "@/lib/geo/geocode";
 
 /** e.g. ["food_truck","restaurant"] -> [{stage:"food_truck", year:2019}, {stage:"restaurant"}] */
 function buildGrowthPath(stages: string[], current: string, foundedYear: number | null) {
@@ -91,6 +92,11 @@ export async function approveCandidate(candidateId: string, _prev: ApproveState,
       .update({ admin_decision: "local", decided_by: user.id, decided_at: new Date().toISOString() })
       .eq("candidate_id", candidateId),
   ]);
+  if (f.type !== "home_seller" && f.street_address) {
+    const pt = await geocode(f.street_address, f.city ?? "Las Vegas");
+    if (pt) await supabase.from("listings").update({ lat: pt.lat, lng: pt.lng }).eq("id", listing.id);
+  }
+
   const failed = results.find((r) => r.error);
   if (failed?.error) return { error: `Listing created (${listing.slug}) but a follow-up step failed: ${failed.error.message}` };
 

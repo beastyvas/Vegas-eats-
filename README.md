@@ -6,7 +6,7 @@ vouched for by people who live here.
 Stack: Next.js 16 (App Router, TypeScript) on Vercel · Supabase (Postgres + RLS, Auth, Storage) · Tailwind CSS v4 ·
 Anthropic API (agents, Phase 6) · Stripe (built, switched off; Phase 7) · MapLibre GL + OpenFreeMap tiles (Phase 2).
 
-> Build status: **Phase 1 of 8 complete** (schema, RLS, auth, seed import, candidate queue). See [Build phases](#build-phases).
+> Build status: **Phases 1–2 of 8 complete** (schema, RLS, auth, seed import, candidate queue, public directory, search, SEO, map). See [Build phases](#build-phases).
 
 ---
 
@@ -102,17 +102,26 @@ Re-running is safe: duplicates (same normalized name or IG handle) are skipped.
 Everything brand-related is in **`config/brand.ts`**: name, tagline, description, domain, IG handle, and colors.
 Colors flow into Tailwind as `bg-chile`, `text-green`, etc. via CSS variables. Change the file and redeploy.
 
+## Public site notes
+
+- **Pages are static (ISR)**: home every 10 min, category/area/spot pages built on first visit and cached, refreshed whenever an admin approves/edits.
+- **🔥 Heating up** uses `listings.heat_score`: this week's weighted vouches + clicks + views vs. the spot's own weekly baseline, plus a fading "new" boost. Recomputed hourly by `/api/cron/heat`.
+- **Map**: MapLibre GL + OpenFreeMap tiles (free, no API key). Only brick-and-mortar spots get exact pins; everyone else is an area-level bubble. Restaurant addresses are geocoded via OpenStreetMap Nominatim on approval. For listings imported before that, use **Geocode addresses** on `/admin`.
+- **SEO**: canonical URLs, `Restaurant`/`FoodEstablishment`/`LocalBusiness` JSON-LD (home sellers never get an address), `ItemList` + breadcrumbs on browse pages, `/sitemap.xml` (only category×area combos that have listings), per-spot OG images, empty pages are `noindex`.
+- **Searches** are logged (query + result count) for the admin "zero-result searches" report.
+
 ## Deploy to Vercel
 
 1. Import the GitHub repo in Vercel (framework: Next.js).
 2. Add the env vars above (Production + Preview).
 3. Deploy. Add your domain, then update `NEXT_PUBLIC_SITE_URL` and Supabase's Site URL/Redirect URLs.
-4. Cron jobs (Phase 6) are declared in `vercel.json` and need `CRON_SECRET` set.
+4. Cron jobs are declared in `vercel.json` (hourly heat refresh now; agents in Phase 6) and need `CRON_SECRET` set.
+5. After the first deploy, sign in as admin and click **Geocode addresses** on `/admin` once.
 
 ## Build phases
 
 1. ✅ Schema + RLS + auth (magic link, Google, zip onboarding) + seed import + candidate queue
-2. Public directory, listing pages, search/filters, SEO pages, map
+2. ✅ Public directory: homepage (🔥 Heating up, 📈 Rising, Started small), `/eats/[category]/[area]` SEO pages, `/spot/[slug]`, search + filters, map, JSON-LD, sitemap, OG images
 3. Claim flow + owner dashboard + analytics events
 4. Vouches with zip weighting + rankings
 5. Truck schedules + check-ins + "today" page

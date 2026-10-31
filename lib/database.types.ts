@@ -937,6 +937,8 @@ export type Database = {
           email: string | null
           founded_year: number | null
           growth_path: Json
+          heat_score: number
+          heat_updated_at: string | null
           how_to_buy: Json
           id: string
           is_featured: boolean
@@ -973,6 +975,8 @@ export type Database = {
           email?: string | null
           founded_year?: number | null
           growth_path?: Json
+          heat_score?: number
+          heat_updated_at?: string | null
           how_to_buy?: Json
           id?: string
           is_featured?: boolean
@@ -1009,6 +1013,8 @@ export type Database = {
           email?: string | null
           founded_year?: number | null
           growth_path?: Json
+          heat_score?: number
+          heat_updated_at?: string | null
           how_to_buy?: Json
           id?: string
           is_featured?: boolean
@@ -1383,6 +1389,14 @@ export type Database = {
       is_open_at: {
         Args: { p_at?: string; p_listing: string }
         Returns: boolean
+      }
+      refresh_heat: {
+        Args: { p_non_valley_weight?: number }
+        Returns: number
+      }
+      search_listings: {
+        Args: { q?: string; p_type?: Database["public"]["Enums"]["listing_type"]; p_category?: string; p_area?: string; p_open?: boolean; p_licensed?: boolean; p_max_price?: number; p_limit?: number }
+        Returns: { id: string; rank: number }[]
       }
     }
     Enums: {

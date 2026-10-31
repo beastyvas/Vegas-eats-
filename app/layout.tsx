@@ -6,7 +6,8 @@ import { appConfig } from "@/config/app";
 import { SiteHeader } from "@/components/ui/site-header";
 import { SiteFooter } from "@/components/ui/site-footer";
 
-const fraunces = Fraunces({ subsets: ["latin"], variable: "--font-fraunces", display: "swap" });
+// "optional": the headline font never re-renders late (protects LCP); next/font preloads it so it is normally ready.
+const fraunces = Fraunces({ subsets: ["latin"], variable: "--font-fraunces", display: "optional", weight: ["600"] });
 const nunito = Nunito({ subsets: ["latin"], variable: "--font-nunito", display: "swap" });
 
 export const metadata: Metadata = {
