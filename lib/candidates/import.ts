@@ -73,6 +73,7 @@ export async function importCandidatesCsv(
       origin_draft: d.origin_draft,
       dishes: d.dishes,
       seed_note: d.seed_note,
+      growth: d.growth,
       dedupe_key: d.dedupe_key,
     }));
     const { data, error } = await supabase.from("candidates").insert(batch).select("id");

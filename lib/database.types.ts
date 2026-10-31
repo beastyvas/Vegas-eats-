@@ -175,6 +175,7 @@ export type Database = {
           dishes: string | null
           duplicate_of: string | null
           email: string | null
+          growth: Database["public"]["Enums"]["listing_type"][]
           how_to_buy: string | null
           id: string
           listing_id: string | null
@@ -206,6 +207,7 @@ export type Database = {
           dishes?: string | null
           duplicate_of?: string | null
           email?: string | null
+          growth?: Database["public"]["Enums"]["listing_type"][]
           how_to_buy?: string | null
           id?: string
           listing_id?: string | null
@@ -237,6 +239,7 @@ export type Database = {
           dishes?: string | null
           duplicate_of?: string | null
           email?: string | null
+          growth?: Database["public"]["Enums"]["listing_type"][]
           how_to_buy?: string | null
           id?: string
           listing_id?: string | null

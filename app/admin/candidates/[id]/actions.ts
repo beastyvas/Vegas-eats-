@@ -6,6 +6,13 @@ import { readListingForm, socialRows } from "@/lib/listings/form";
 import { slugify, uniqueSlug } from "@/lib/slug";
 import type { Json } from "@/lib/database.types";
 
+/** e.g. ["food_truck","restaurant"] -> [{stage:"food_truck", year:2019}, {stage:"restaurant"}] */
+function buildGrowthPath(stages: string[], current: string, foundedYear: number | null) {
+  const path = stages.length ? [...stages] : [current];
+  if (path[path.length - 1] !== current) path.push(current);
+  return path.map((stage, i) => (i === 0 && foundedYear ? { stage, year: foundedYear } : { stage }));
+}
+
 export type ApproveState = { error?: string; fieldErrors?: Record<string, string> };
 
 async function nextCandidateUrl(supabase: Awaited<ReturnType<typeof requireAdmin>>["supabase"], excludeId: string) {
@@ -32,7 +39,7 @@ export async function approveCandidate(candidateId: string, _prev: ApproveState,
   if (!categoryIds.length) return { error: "Pick at least one category.", fieldErrors: { category_ids: "Required" } };
   const publish = fd.get("intent") !== "draft";
 
-  const { data: cand } = await supabase.from("candidates").select("id, status").eq("id", candidateId).single();
+  const { data: cand } = await supabase.from("candidates").select("id, status, growth").eq("id", candidateId).single();
   if (!cand || cand.status !== "new") return { error: "This candidate was already reviewed." };
 
   const base = f.slug ?? slugify(f.name);
@@ -62,7 +69,7 @@ export async function approveCandidate(candidateId: string, _prev: ApproveState,
       street_address: f.street_address,
       city: f.city,
       zip: f.zip,
-      growth_path: (f.founded_year ? [{ stage: f.type, year: f.founded_year }] : []) as Json,
+      growth_path: buildGrowthPath(cand.growth, f.type, f.founded_year) as Json,
       last_seen_active_at: new Date().toISOString(),
     })
     .select("id, slug")
