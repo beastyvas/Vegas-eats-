@@ -1,5 +1,5 @@
 "use server";
-import { revalidatePath } from "next/cache";
+import { refreshPublicPages } from "@/lib/revalidate";
 import { requireAdmin } from "@/lib/auth";
 import { geocode, sleep } from "@/lib/geo/geocode";
 
@@ -25,6 +25,6 @@ export async function geocodeMissing(): Promise<GeocodeState> {
     const { error: upErr } = await supabase.from("listings").update({ lat: pt.lat, lng: pt.lng }).eq("id", l.id);
     if (upErr) failed.push(l.name); else done++;
   }
-  if (done) revalidatePath("/", "layout");
+  if (done) refreshPublicPages();
   return { done, failed };
 }

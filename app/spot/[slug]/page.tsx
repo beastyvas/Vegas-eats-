@@ -13,6 +13,8 @@ import { breadcrumbJsonLd, listingJsonLd } from "@/lib/seo/jsonld";
 import { HOW_TO_BUY_KEYS, HOW_TO_BUY_LABELS } from "@/lib/listings/form";
 import { DAY_NAMES, formatTime } from "@/lib/time/open-now";
 import { OpenNow } from "@/components/listing/open-now";
+import { PhoneLink, ViewBeacon } from "@/components/listing/track";
+import { directionsUrl, goHref, type LinkKind } from "@/lib/links";
 
 export const revalidate = 600;
 export async function generateStaticParams() {
@@ -33,11 +35,6 @@ export async function generateMetadata({ params }: P): Promise<Metadata> {
     .join(" ")
     .slice(0, 300);
   return { title, description, alternates: { canonical: `/spot/${slug}` }, openGraph: { title, description, type: "website" } };
-}
-
-function directionsUrl(l: ListingDetail) {
-  const q = [l.name, l.street_address, l.city ?? "Las Vegas", "NV"].filter(Boolean).join(", ");
-  return `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(q)}`;
 }
 
 const SOCIAL_LABEL: Record<string, string> = { instagram: "Instagram", tiktok: "TikTok", facebook: "Facebook", x: "X", youtube: "YouTube", yelp: "Yelp", google: "Google", website: "Website", other: "Link" };
@@ -61,16 +58,19 @@ export default async function SpotPage({ params }: P) {
     { name: l.name, path: `/spot/${l.slug}` },
   ];
 
-  const actions: { href: string; label: string; primary?: boolean }[] = [];
-  if (l.order_url) actions.push({ href: l.order_url, label: "Order online", primary: true });
-  if (ig) actions.push({ href: ig.url, label: htb.dm ? `DM @${ig.handle} to order` : `@${ig.handle} on Instagram`, primary: !l.order_url });
-  if (isBrick) actions.push({ href: directionsUrl(l), label: "Directions" });
-  if (l.phone) actions.push({ href: `tel:${l.phone.replace(/[^\d+]/g, "")}`, label: `Call ${l.phone}` });
-  if (l.website) actions.push({ href: l.website, label: "Website" });
-  for (const s of l.socials.filter((s) => s.platform !== "instagram")) actions.push({ href: s.url, label: SOCIAL_LABEL[s.platform] ?? "Link" });
+  // Outbound links go through /go/<id>/<kind> so owners can see how many people tapped them.
+  const actions: { kind: LinkKind; label: string; primary?: boolean }[] = [];
+  if (l.order_url) actions.push({ kind: "order", label: "Order online", primary: true });
+  if (ig) actions.push({ kind: "instagram", label: htb.dm ? `DM @${ig.handle} to order` : `@${ig.handle} on Instagram`, primary: !l.order_url });
+  if (isBrick) actions.push({ kind: "directions", label: "Directions" });
+  if (l.website) actions.push({ kind: "website", label: "Website" });
+  for (const s of l.socials) {
+    if (s.platform === "tiktok" || s.platform === "facebook") actions.push({ kind: s.platform, label: SOCIAL_LABEL[s.platform] });
+  }
 
   return (
     <>
+      <ViewBeacon listingId={l.id} />
       <JsonLd data={listingJsonLd(l)} />
       <JsonLd data={breadcrumbJsonLd(crumbs)} />
       <Breadcrumbs crumbs={crumbs} />
@@ -98,15 +98,18 @@ export default async function SpotPage({ params }: P) {
             <p className="mt-4 rounded-2xl bg-surface p-3 text-sm font-bold">
               {l.vouch_local_count > 0 ? <>🤝 Vouched by {l.vouch_local_count} local{l.vouch_local_count === 1 ? "" : "s"}</> : <>🤝 No vouches yet. Locals will be able to vouch soon.</>}
             </p>
-            {actions.length > 0 && (
+            {(actions.length > 0 || l.phone) && (
               <ul className="mt-5 flex flex-wrap gap-2">
                 {actions.map((a) => (
-                  <li key={a.href}>
-                    <a href={a.href} target={a.href.startsWith("tel:") ? undefined : "_blank"} rel="noopener noreferrer" className={a.primary ? "btn-primary" : "btn-secondary"}>
+                  <li key={a.kind}>
+                    <a href={goHref(l.id, a.kind)} target="_blank" rel="noopener nofollow" className={a.primary ? "btn-primary" : "btn-secondary"}>
                       {a.label}
                     </a>
                   </li>
                 ))}
+                {l.phone && (
+                  <li><PhoneLink listingId={l.id} phone={l.phone} className="btn-secondary">Call {l.phone}</PhoneLink></li>
+                )}
               </ul>
             )}
           </div>
@@ -127,7 +130,7 @@ export default async function SpotPage({ params }: P) {
               ) : (
                 <p className="mt-2 text-muted">
                   The full story isn&apos;t written yet.{" "}
-                  <Link href="/about#owners" className="font-bold text-ink underline">Own {l.name}? Claim the page and tell it.</Link>
+                  {!l.claimed_at && <Link href={`/spot/${l.slug}/claim`} className="font-bold text-ink underline">Own {l.name}? Claim the page and tell it.</Link>}
                 </p>
               )}
             </section>
@@ -150,7 +153,7 @@ export default async function SpotPage({ params }: P) {
               {isBrick ? (
                 <>
                   <p className="mt-2 font-semibold">{l.street_address}{l.city ? `, ${l.city}` : ""}</p>
-                  <a href={directionsUrl(l)} target="_blank" rel="noopener noreferrer" className="mt-2 inline-block font-bold underline">Get directions →</a>
+                  <a href={goHref(l.id, "directions")} target="_blank" rel="noopener nofollow" className="mt-2 inline-block font-bold underline">Get directions →</a>
                 </>
               ) : (
                 <>
@@ -183,15 +186,21 @@ export default async function SpotPage({ params }: P) {
                   ))}
                 </ul>
               ) : (
-                <p className="mt-2 text-muted">Hours aren&apos;t posted yet. Check {ig ? <a className="underline" href={ig.url} target="_blank" rel="noopener noreferrer">@{ig.handle}</a> : "their socials"} before you go.</p>
+                <p className="mt-2 text-muted">Hours aren&apos;t posted yet. Check {ig ? <a className="underline" href={goHref(l.id, "instagram")} target="_blank" rel="noopener nofollow">@{ig.handle}</a> : "their socials"} before you go.</p>
               )}
             </section>
 
-            <section aria-labelledby="own" className="rounded-3xl border-2 border-dashed border-ink p-5">
-              <h2 id="own" className="h-display text-xl">Is this your spot?</h2>
-              <p className="mt-1 text-sm">Claim it free to add photos, your story, hours, and “here today” updates, and see how many locals check you out.</p>
-              <Link href="/about#owners" className="btn-secondary mt-3">Claim this page</Link>
-            </section>
+            {l.claimed_at ? (
+              <p className="rounded-3xl bg-green p-5 text-sm font-bold text-white">
+                <span aria-hidden="true">✓</span> Owner-verified page: the owner keeps this info up to date.
+              </p>
+            ) : (
+              <section aria-labelledby="own" className="rounded-3xl border-2 border-dashed border-ink p-5">
+                <h2 id="own" className="h-display text-xl">Is this your spot?</h2>
+                <p className="mt-1 text-sm">Claim it free to add photos, your story, hours, and “here today” updates, and see how many locals check you out.</p>
+                <Link href={`/spot/${l.slug}/claim`} className="btn-secondary mt-3">Claim this page</Link>
+              </section>
+            )}
           </aside>
         </div>
       </article>

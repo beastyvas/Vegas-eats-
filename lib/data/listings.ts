@@ -26,6 +26,7 @@ export type ListingCard = {
   is_featured: boolean;
   license_verified_at: string | null;
   published_at: string | null;
+  claimed_at: string | null;
   growth_path: GrowthStep[];
   lat: number | null;
   lng: number | null;
@@ -36,7 +37,7 @@ export type ListingCard = {
 
 const CARD_SELECT = `
   id, slug, name, type, story_hook, what_to_order, price_level, vouch_local_count, vouch_total_count,
-  heat_score, is_featured, license_verified_at, published_at, growth_path, lat, lng,
+  heat_score, is_featured, license_verified_at, published_at, growth_path, lat, lng, claimed_at,
   areas ( slug, name, centroid_lat, centroid_lng ),
   listing_categories ( categories ( slug, name, emoji, sort ) ),
   listing_photos ( storage_path, alt_text, sort )
@@ -45,7 +46,7 @@ const CARD_SELECT = `
 type RawCard = {
   id: string; slug: string; name: string; type: ListingType; story_hook: string | null; what_to_order: string | null;
   price_level: number | null; vouch_local_count: number; vouch_total_count: number; heat_score: number;
-  is_featured: boolean; license_verified_at: string | null; published_at: string | null; growth_path: unknown;
+  is_featured: boolean; license_verified_at: string | null; published_at: string | null; claimed_at: string | null; growth_path: unknown;
   lat: number | null; lng: number | null;
   areas: ListingCard["area"];
   listing_categories: { categories: { slug: string; name: string; emoji: string | null; sort: number } | null }[];
@@ -63,7 +64,7 @@ function toCard(r: RawCard): ListingCard {
     id: r.id, slug: r.slug, name: r.name, type: r.type, story_hook: r.story_hook, what_to_order: r.what_to_order,
     price_level: r.price_level, vouch_local_count: r.vouch_local_count, vouch_total_count: r.vouch_total_count,
     heat_score: Number(r.heat_score), is_featured: r.is_featured, license_verified_at: r.license_verified_at,
-    published_at: r.published_at, growth_path: Array.isArray(r.growth_path) ? (r.growth_path as GrowthStep[]) : [],
+    published_at: r.published_at, claimed_at: r.claimed_at, growth_path: Array.isArray(r.growth_path) ? (r.growth_path as GrowthStep[]) : [],
     lat: r.lat, lng: r.lng, area: r.areas, categories: cats,
     photo: photo ? { storage_path: photo.storage_path, alt_text: photo.alt_text } : null,
   };

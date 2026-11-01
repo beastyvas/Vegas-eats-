@@ -933,6 +933,7 @@ export type Database = {
         Row: {
           area_id: number | null
           city: string | null
+          claimed_at: string | null
           created_at: string
           email: string | null
           founded_year: number | null
@@ -971,6 +972,7 @@ export type Database = {
         Insert: {
           area_id?: number | null
           city?: string | null
+          claimed_at?: string | null
           created_at?: string
           email?: string | null
           founded_year?: number | null
@@ -1009,6 +1011,7 @@ export type Database = {
         Update: {
           area_id?: number | null
           city?: string | null
+          claimed_at?: string | null
           created_at?: string
           email?: string | null
           founded_year?: number | null
@@ -1389,6 +1392,10 @@ export type Database = {
       is_open_at: {
         Args: { p_at?: string; p_listing: string }
         Returns: boolean
+      }
+      listing_stats: {
+        Args: { p_listing: string; p_since: string }
+        Returns: { kind: string; total: number; uniques: number }[]
       }
       refresh_heat: {
         Args: { p_non_valley_weight?: number }

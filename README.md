@@ -6,7 +6,7 @@ vouched for by people who live here.
 Stack: Next.js 16 (App Router, TypeScript) on Vercel · Supabase (Postgres + RLS, Auth, Storage) · Tailwind CSS v4 ·
 Anthropic API (agents, Phase 6) · Stripe (built, switched off; Phase 7) · MapLibre GL + OpenFreeMap tiles (Phase 2).
 
-> Build status: **Phases 1–2 of 8 complete** (schema, RLS, auth, seed import, candidate queue, public directory, search, SEO, map). See [Build phases](#build-phases).
+> Build status: **Phases 1–3 of 8 complete** (schema, RLS, auth, seed import, candidate queue, public directory, search, SEO, map, claims, owner dashboard, analytics). See [Build phases](#build-phases).
 
 ---
 
@@ -110,6 +110,13 @@ Colors flow into Tailwind as `bg-chile`, `text-green`, etc. via CSS variables. C
 - **SEO**: canonical URLs, `Restaurant`/`FoodEstablishment`/`LocalBusiness` JSON-LD (home sellers never get an address), `ItemList` + breadcrumbs on browse pages, `/sitemap.xml` (only category×area combos that have listings), per-spot OG images, empty pages are `noindex`.
 - **Searches** are logged (query + result count) for the admin "zero-result searches" report.
 
+## Owners & analytics
+
+- **Claiming** (`/spot/[slug]/claim`): (1) *Instagram:* the owner gets a 6-character code and DMs it **from the listing's Instagram** to `brand.instagram`; you type the code into `/admin/claims` and it must match. (2) *Email:* a code is emailed to the listing's email on file (needs `RESEND_API_KEY` + `OUTREACH_FROM_EMAIL`); the owner enters it and is approved instantly. (3) *Manual:* the owner explains; you approve. We never send automated DMs.
+- **Owners** (`/owner`) edit story, what-to-order, how-to-buy, links, categories, hours; upload photos (resized to WebP in the browser, alt text required, 12 max, stored in the public `listing-photos` bucket under `<listing_id>/`); request name/type/address changes (→ `/admin/edits`); submit a license number (→ `/admin/licenses` → "Verified licensed" badge).
+- **Analytics**: outbound links go through `/go/<listing_id>/<kind>` (302 + event); page views and tap-to-call use a beacon to `/api/track` so pages stay static. Bots/headless browsers are ignored. Visitors are counted by a daily anonymous hash (no IPs stored). Owners see a 30-day scoreboard; admins see zero-result and top searches on `/admin`.
+- **Cache**: every public data fetch is tagged `public-data`; owner/admin changes call `refreshPublicPages()` so the next visit shows the change.
+
 ## Deploy to Vercel
 
 1. Import the GitHub repo in Vercel (framework: Next.js).
@@ -122,7 +129,7 @@ Colors flow into Tailwind as `bg-chile`, `text-green`, etc. via CSS variables. C
 
 1. ✅ Schema + RLS + auth (magic link, Google, zip onboarding) + seed import + candidate queue
 2. ✅ Public directory: homepage (🔥 Heating up, 📈 Rising, Started small), `/eats/[category]/[area]` SEO pages, `/spot/[slug]`, search + filters, map, JSON-LD, sitemap, OG images
-3. Claim flow + owner dashboard + analytics events
+3. ✅ Claim flow (IG DM code / email code / manual), owner edit + hours + photos, change requests, license badge, click/view analytics + owner scoreboard, admin queues
 4. Vouches with zip weighting + rankings
 5. Truck schedules + check-ins + "today" page
 6. Agent pipeline (discovery, chain-check, liveness, enrichment) + outreach queue

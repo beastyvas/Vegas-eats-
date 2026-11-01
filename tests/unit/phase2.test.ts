@@ -15,7 +15,7 @@ describe("diversify", () => {
 const base: ListingDetail = {
   id: "1", slug: "x", name: "X", type: "home_seller", story_hook: "Hook", what_to_order: null, price_level: 2,
   vouch_local_count: 0, vouch_total_count: 0, heat_score: 0, is_featured: false, license_verified_at: null,
-  published_at: null, growth_path: [], lat: 36.1, lng: -115.1,
+  published_at: null, claimed_at: null, growth_path: [], lat: 36.1, lng: -115.1,
   area: { slug: "henderson", name: "Henderson", centroid_lat: 36, centroid_lng: -115 },
   categories: [{ slug: "pizza", name: "Pizza", emoji: "🍕" }], photo: null, origin_story: null, how_to_buy: {},
   order_url: null, website: null, phone: null, email: null, show_phone: true, show_email: false,

@@ -19,6 +19,7 @@ export default async function MePage() {
       </dl>
       <div className="mt-6 flex flex-wrap gap-3">
         <Link href="/onboarding?next=/me" className="btn-secondary">Edit profile</Link>
+        <Link href="/owner" className="btn-secondary">Your spots</Link>
         {profile?.role === "admin" && <Link href="/admin" className="btn-secondary">Admin</Link>}
         <form action="/auth/signout" method="post">
           <button className="btn-ghost" type="submit">Sign out</button>

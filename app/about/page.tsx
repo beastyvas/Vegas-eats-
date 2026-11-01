@@ -60,8 +60,9 @@ export default function AboutPage() {
         <h2 id="owners-h" className="h-display text-2xl">Own a spot?</h2>
         <p className="mt-3">
           Claiming your page is free: add photos, your story, hours, and “here today” updates, and see how many locals check you
-          out. Self-serve claiming is rolling out now. Until then, DM us at <strong>{brand.instagram}</strong> or email{" "}
-          <a className="underline" href={`mailto:${brand.email}`}>{brand.email}</a> and we&apos;ll hook you up.
+          out. Find your spot, open its page, and tap <strong>Claim this page</strong>. You&apos;ll verify with a quick DM from
+          your business Instagram, an emailed code, or a short manual check. Questions? Email{" "}
+          <a className="underline" href={`mailto:${brand.email}`}>{brand.email}</a>.
         </p>
         <p className="mt-3">Not listed yet? <Link href="/add-a-spot" className="font-extrabold underline">Add your spot</Link>.</p>
       </section>

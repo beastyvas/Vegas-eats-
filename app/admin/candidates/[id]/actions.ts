@@ -1,6 +1,6 @@
 "use server";
 import { redirect } from "next/navigation";
-import { revalidatePath } from "next/cache";
+import { refreshPublicPages } from "@/lib/revalidate";
 import { requireAdmin } from "@/lib/auth";
 import { readListingForm, socialRows } from "@/lib/listings/form";
 import { slugify, uniqueSlug } from "@/lib/slug";
@@ -100,7 +100,7 @@ export async function approveCandidate(candidateId: string, _prev: ApproveState,
   const failed = results.find((r) => r.error);
   if (failed?.error) return { error: `Listing created (${listing.slug}) but a follow-up step failed: ${failed.error.message}` };
 
-  revalidatePath("/", "layout");
+  refreshPublicPages();
   redirect(await nextCandidateUrl(supabase, candidateId));
 }
 

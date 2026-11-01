@@ -7,6 +7,9 @@ export const metadata: Metadata = { title: "Admin", robots: { index: false, foll
 const NAV = [
   { href: "/admin", label: "Overview" },
   { href: "/admin/candidates", label: "Candidates" },
+  { href: "/admin/claims", label: "Claims" },
+  { href: "/admin/edits", label: "Edit requests" },
+  { href: "/admin/licenses", label: "Licenses" },
   { href: "/admin/import", label: "Import CSV" },
 ];
 
