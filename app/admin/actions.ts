@@ -19,9 +19,9 @@ export async function geocodeMissing(): Promise<GeocodeState> {
   let done = 0;
   const failed: string[] = [];
   for (const [i, l] of (data ?? []).entries()) {
-    if (i > 0) await sleep(1100); // Nominatim: 1 req/sec
+    if (i > 0) await sleep(1100); // stay polite to the OSM fallback (1 req/sec)
     const pt = await geocode(l.street_address!, l.city ?? "Las Vegas");
-    if (!pt) { failed.push(l.name); continue; }
+    if (!pt.ok) { failed.push(`${l.name} (${pt.reason})`); continue; }
     const { error: upErr } = await supabase.from("listings").update({ lat: pt.lat, lng: pt.lng }).eq("id", l.id);
     if (upErr) failed.push(l.name); else done++;
   }

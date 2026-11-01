@@ -94,7 +94,7 @@ export async function approveCandidate(candidateId: string, _prev: ApproveState,
   ]);
   if (f.type !== "home_seller" && f.street_address) {
     const pt = await geocode(f.street_address, f.city ?? "Las Vegas");
-    if (pt) await supabase.from("listings").update({ lat: pt.lat, lng: pt.lng }).eq("id", listing.id);
+    if (pt.ok) await supabase.from("listings").update({ lat: pt.lat, lng: pt.lng }).eq("id", listing.id);
   }
 
   const failed = results.find((r) => r.error);
