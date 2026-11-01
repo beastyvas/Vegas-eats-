@@ -6,6 +6,16 @@ import { NextResponse, type NextRequest } from "next/server";
  * pages stay cookie-free and cacheable.
  */
 export async function proxy(request: NextRequest) {
+  // Safety net: if Supabase falls back to the Site URL (e.g. the redirect URL
+  // wasn't allow-listed), the auth code lands on "/". Forward it to the callback.
+  if (request.nextUrl.pathname === "/") {
+    const code = request.nextUrl.searchParams.get("code");
+    if (!code) return NextResponse.next();
+    const url = request.nextUrl.clone();
+    url.pathname = "/auth/callback";
+    return NextResponse.redirect(url);
+  }
+
   let response = NextResponse.next({ request });
 
   const supabase = createServerClient(
@@ -41,5 +51,5 @@ export async function proxy(request: NextRequest) {
 }
 
 export const config = {
-  matcher: ["/admin/:path*", "/owner/:path*", "/me/:path*", "/onboarding", "/login", "/auth/:path*", "/spot/:slug/claim"],
+  matcher: ["/", "/admin/:path*", "/owner/:path*", "/me/:path*", "/onboarding", "/login", "/auth/:path*", "/spot/:slug/claim"],
 };
