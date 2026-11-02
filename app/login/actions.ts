@@ -5,6 +5,7 @@ import { z } from "zod";
 import { createClient } from "@/lib/supabase/server";
 import { safeNext } from "@/lib/safe-next";
 import { appConfig } from "@/config/app";
+import { friendlyAuthError } from "@/lib/auth-errors";
 
 async function origin() {
   const h = await headers();
@@ -24,7 +25,7 @@ export async function sendMagicLink(_prev: LoginState, formData: FormData): Prom
     email: parsed.data,
     options: { emailRedirectTo: `${await origin()}/auth/callback?next=${encodeURIComponent(next)}` },
   });
-  if (error) return { error: error.message };
+  if (error) return { error: friendlyAuthError(error.message) };
   return { ok: true, email: parsed.data };
 }
 

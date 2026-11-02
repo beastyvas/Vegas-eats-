@@ -86,7 +86,10 @@ If that email already has an account, it's promoted immediately. Otherwise it's 
 
 1. **Authentication → URL Configuration**: Site URL = your domain. Add `http://localhost:3000/auth/callback` and
    `https://<your-domain>/auth/callback` to Redirect URLs.
-2. **Email (magic link)** works out of the box (rate-limited on Supabase's built-in SMTP; add custom SMTP like Resend for production).
+2. **Email (magic link)**: so links work in *any* browser (e.g. tapped inside the Gmail app), change the templates under
+   Authentication → Emails → Templates. **Magic Link:** `<a href="{{ .RedirectTo }}&token_hash={{ .TokenHash }}&type=email">Sign in</a>`.
+   **Confirm signup:** same with `type=signup`. `/auth/callback` verifies the token hash server-side (no PKCE cookie needed).
+   Out of the box it (rate-limited on Supabase's built-in SMTP; add custom SMTP like Resend for production).
 3. **Google**: Authentication → Providers → Google. Create an OAuth client in Google Cloud Console with redirect URI
    `https://<ref>.supabase.co/auth/v1/callback`, then paste the client ID/secret.
 

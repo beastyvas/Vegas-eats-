@@ -39,3 +39,12 @@ describe("owner form", () => {
     expect(readHours(bad).error).toBeTruthy();
   });
 });
+
+import { friendlyAuthError } from "@/lib/auth-errors";
+describe("friendlyAuthError", () => {
+  it("explains PKCE / rate limit errors in plain English", () => {
+    expect(friendlyAuthError("PKCE code verifier not found in storage.")).toMatch(/different browser/);
+    expect(friendlyAuthError("email rate limit exceeded")).toMatch(/Too many/);
+    expect(friendlyAuthError("Something else")).toBe("Something else");
+  });
+});
